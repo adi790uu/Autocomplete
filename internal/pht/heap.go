@@ -1,0 +1,54 @@
+package pht
+
+import "container/heap"
+
+// S is the bounded size — the max number of suggestions we keep per prefix
+const S = 8
+
+// Suggestion is one autocomplete candidate: the text and its popularity score.
+// Higher Score = more popular = should rank first.
+type Suggestion struct {
+	Text  string
+	Score int
+}
+
+type SuggestionHeap []Suggestion
+
+var _ heap.Interface = (*SuggestionHeap)(nil)
+
+func (h SuggestionHeap) Len() int {
+	return len(h)
+}
+
+func (h SuggestionHeap) Less(i, j int) bool {
+	return h[i].Score < h[j].Score
+}
+
+func (h SuggestionHeap) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
+}
+
+func (h *SuggestionHeap) Push(x any) {
+	*h = append(*h, x.(Suggestion))
+}
+
+func (h *SuggestionHeap) Pop() any {
+	old := *h
+	n := len(old)
+	last := old[n-1]
+	*h = old[:n-1]
+	return last
+}
+
+func (h *SuggestionHeap) Offer(s Suggestion) {
+	heapSlice := *h
+	length := len(heapSlice)
+	if length < S {
+		heap.Push(h, s)
+		return
+	}
+	if s.Score > heapSlice[0].Score {
+		heap.Pop(h)
+		heap.Push(h, s)
+	}
+}
