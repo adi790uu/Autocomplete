@@ -1,6 +1,9 @@
 package pht
 
-import "container/heap"
+import (
+	"container/heap"
+	"sort"
+)
 
 // S is the bounded size — the max number of suggestions we keep per prefix
 const S = 8
@@ -38,6 +41,15 @@ func (h *SuggestionHeap) Pop() any {
 	last := old[n-1]
 	*h = old[:n-1]
 	return last
+}
+
+// Ranked returns the heap's suggestions ordered best-first (highest Score).
+// It copies, so it does not disturb the underlying heap.
+func (h SuggestionHeap) Ranked() []Suggestion {
+	out := make([]Suggestion, len(h))
+	copy(out, h)
+	sort.Slice(out, func(i, j int) bool { return out[i].Score > out[j].Score })
+	return out
 }
 
 func (h *SuggestionHeap) Offer(s Suggestion) {
